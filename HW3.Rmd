@@ -1,0 +1,196 @@
+---
+title: "Homework 3"
+author: "Matthew Farr"
+date: "October 27, 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+FW 849
+Fall 2014
+HW3: Model comparison and model checking
+
+The cpus dataset in R can be found using:
+>library(MASS)
+>data(cpus)
+It includes a relative measure of performance and characteristics of 209 cpus. For more details about this dataset, please use the help command:
+>?cpus
+
+This dataset is often used to illustrate model selection in regression. We will use this data in this HW. HINT: use the provided R code to upload and standardize the data.
+
+A preliminary analysis has found that the variables mmin (minimum main memory), mmax (maximum main memory), cach (cache size) and chmax (maximum number of chanels) allow to build a model with good predictive properties for the performance measure variable (perf). Please answer the following questions:
+
+<a name="8"></a>
+
+1)	Write a linear regression model that allows to predict performance using the 4 listed predictor variables (assume indepdendently and identically distributed errors), make sure to include all prior assumptions. (20 points)
+
+<span style="color:red">See [BUGS Model](#1) for the linear regression.
+
+2)	Fit the model using OpenBUGS. Provide convergence diagnostics (10 points) and posterior distribution of parameters of interest: linear coefficients and error variance (10). HINT: be careful with computational cost! Start with small number of iterations (5000) and perform diagnostics only on linear parameters and precision. Once you decide the number of iterations and burn in, you can start monitoring other quantities.
+
+<span style="color:red">See [Model 1 Test](#2) for test run posterior distributions and  convergence diagnostics.
+
+<span style="color:red">See [Model 1](#3) for full run posterior distributions and convergence diagnostics. Note that Gelman and Rubin diagnostic is contained within the summary output under rhat.
+
+3)	Assess the posterior predictive distribution of FUTURE observations. Hint: a graphic of predicted versus observed or residuals versus observed could be used, BUT make sure you generate FUTURE observations. (20 points)
+
+<span style="color:red">See [Future vs Observed Residuals](#4) to assess the model fit for FUTURE observations. The plot suggest that the model has good fit, and would be able to predict FUTURE observations.
+
+4)	An alternative model to the presented model is the model that excludes mmin and chmax (model that predicts perf using only mmax and cach). Fit this model using OpenBUGS (20 points)
+
+<span style="color:red">The [BUGS Model](#1) was reused, but the data was [reformatted](#5) to exlude "mmin" and "chmax." See [Model 2](#6) for full run posterior distributions and convergence diagnostics. Note that Gelman and Rubin diagnostic is contained within the summary output under rhat.
+
+5)	If you have to choose between the model in 1) and the model in 4), which one would you choose and why? HINT: if you want to re-fit the model to extract predictive criteria, monitor the minimum number of parameters to minimize memory use and output.
+
+<span style="color:red">The [DIC comparison](#7) shows that [Model 1](#3) better fits the data than [Model 2](#6). Thus the full model is better than the model when removing mmin and chmax and those 2 predictors are important in describing the performance of CPUs.
+
+Load Packages and Data
+```{r}
+library(MASS)
+library(coda)
+library(jagsUI)
+
+data(cpus)
+
+y<-cpus$perf
+x<-as.matrix(cpus[,c("mmin","mmax","cach","chmax")])
+x<-apply(x,2,scale)
+head(x)
+
+y<-(y-mean(y))/sd(y)
+
+N <- length(y)
+p <- length(x[1,])
+```
+
+Look at standardized Data
+```{r}
+hist(y)
+```
+
+<a name="1"></a>BUGS Model
+```{r}
+cat("
+  model{
+  
+  #Priors
+  
+  tau ~ dgamma(0.0001, 0.0001)
+  for(i in 1:p){
+  beta[i] ~ dnorm(0, 0.001)
+  }
+
+  #Likelihood
+  for(i in 1:N){
+  mu[i] <- inprod(x[i,], beta)
+  y[i] ~ dnorm(mu[i], tau)
+  yfuture[i] ~ dnorm(mu[i], tau)
+  e[i] <- y[i] - mu[i]
+  enew[i] <- yfuture[i] - mu[i]
+  }
+  fit <- sum(e[])
+  fitnew <- sum(enew[])
+
+  }",fill=TRUE,file="hw3_1.txt")
+```
+
+[Return to Top](#8)
+
+Compile Data, Generate Inits, and Run Test Model
+```{r}
+data.regress<-list(y = y, N = N, p = p, x = x)
+
+inits<-function(){
+  list(tau=runif(1,0,10)
+  )
+}
+
+params <-c("beta","tau")
+
+out <- jags(data = data.regress, inits = inits, parameters.to.save = params, 
+            model.file = "hw3_1.txt", n.chains = 1, n.iter = 5100, n.burnin = 100, n.thin = 1)
+```
+
+<a name="2"></a>Model 1 Test Posterior Distribution Summary and Convergence Diagnostics
+```{r, fig.width=2, fig.height=1}
+out
+
+nm.theta <- paste("beta[",1:p,"]",sep="")
+beta <- out$samples[[1]][,nm.theta]
+traceplot(beta)
+autocorr.plot(beta)
+
+nm.theta <- paste("tau",sep="")
+tau <- out$samples[[1]][,nm.theta]
+traceplot(tau)
+autocorr.plot(tau)
+```
+
+[Return to Top](#8)
+
+Set Parameters and Run Full Model 1
+```{r}
+params2 <- c("beta", "tau", "fit", "fitnew")
+
+out2 <- jags(data = data.regress, inits = inits, parameters.to.save = params2, 
+model.file = "hw3_1.txt", n.chains = 3, n.iter = 15000, n.burnin = 5000, n.thin = 8)
+```
+
+<a name="3"></a>Full Model 1 Posterior Distribution Summary and Convergence Diagnostics
+```{r}
+out2[["summary"]][1:5,]
+traceplot(out2, "beta")
+```
+
+[Return to Top](#8)
+
+<a name="4"></a>Future Residuals vs Observed Residuals
+```{r}
+plot(out2$sims.list$fit, out2$sims.list$fitnew)
+abline(0,1, lwd = 2, col = "black")
+```
+
+[Return to Top](#8)
+
+<a name="5"></a>Model 2 Reformat and Recompile Data
+```{r}
+x1<-as.matrix(cpus[,c("mmax","cach")])
+x1<-apply(x1,2,scale)
+head(x1)
+p1 <- length(x1[1,])
+
+data.regress1<-list(y = y, N = N, p = p1, x = x1)
+```
+
+[Return to Top](#8)
+
+Run Full Model 2
+```{r}
+out3 <- jags(data = data.regress1, inits = inits, parameters.to.save = params, 
+model.file = "hw3_1.txt", n.chains = 3, n.iter = 15000, n.burnin = 5000, n.thin = 8)
+```
+
+[Return to Top](#8)
+
+<a name="6"></a>Full Model 2 Posterior Distribution Summary and Convergence Diagnostics
+```{r}
+out3[["summary"]][1:3,]
+
+traceplot(out3, "beta")
+traceplot(out3, "tau")
+```
+
+[Return to Top](#8)
+
+<a name="7"></a>Compare DIC between Model 1 and Model 2
+
+Model1
+```{r}
+out2$DIC
+```
+Model2
+```{r}
+out3$DIC
+```
+
+[Return to Top](#8)
