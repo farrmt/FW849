@@ -1,0 +1,304 @@
+
+
+<div class="ltx_p">FW 849</div>
+
+
+<div class="ltx_p">Fall 2016</div>
+
+
+<div class="ltx_p">HW4: project description</div>
+
+
+<div class="ltx_p">This homework is delivered to facilitate initiation of class project
+work. It will be a graded activity.</div>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">Read the project guidelines in D2L (0 points)</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">CHECK</div>
+</blockquote>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">Select a dataset that you have access to. Consider simulating data or
+asking the instructor for a dataset. (0 points)</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">CHECK</div>
+</blockquote>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">Write a BRIEF intro describing the problem. The intro should finish
+with a clear statement of what is the goal or goals (30 points)</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">Anthropogenic disturbance from palm oil plantations in Borneo has led to
+deforestation and forest fragmentation. Loss of habitat from these
+consequences of anthropogenic disturbances has led to orangutans being
+seriously threatened. Monitoring temporal trends of orangutans and what
+impacts their abundance and distribution is necessary to prevent the
+continue loss and possible extinction of many wild orangutan
+populations. Habitat types and food (fruit) are seen as potential
+drivers of orangutan distributions and might give an indication of which
+areas should be protected.
+
+<br>
+The goal of this analysis is to monitor habitat and fruit covariates
+that might determine orangutan abundance spatially and temporally. Using
+a Bayesian framework I will estimate the mean abundance of orangutans
+while accounting for detection using distance sampling methods. I will
+then use the parameter estimates of habitat and fruit to predict
+orangutan abundance.</div>
+</blockquote>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">Present a brief descriptive or exploratory analysis of the data.
+Especially important is to show numerical or graphical summaries that
+characterize the data in terms of the stated goals (question 3) and
+the anticipated data analysis models (question 5). (30 points)</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">The data collected in this project are:</div>
+</blockquote>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">the observations (count) of orangutans at each site and replicate</div>
+</li>
+<li> 
+
+<div class="ltx_p">the distances of each observation</div>
+</li>
+<li> 
+
+<div class="ltx_p">the amount of fruit at each site and replicate</div>
+</li>
+<li> 
+
+<div class="ltx_p">the habitat type of each site</div>
+</li>
+<li> 
+
+<div class="ltx_p">the length of each transect (site).</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">Here is a histogram of the observation data (1 above):
+
+<br>
+
+
+<br>
+As you can see the data is largely zero inflated. Thus, a zero inflation
+component might be necessary within the model for a decent fit.
+
+<br>
+The next 7 plot looks at the trend of observations (1 above) over time
+in each habitat (4 above):
+
+<br>
+
+
+<br>
+It seems 2 of the habitat types, MO and UG, have low levels of orangutan
+observations.
+
+<br>
+Below is a histogram of the unstandardized fruit data (3 above):
+
+<br>
+
+
+<br>
+This fruit covariate will need to be standardized for the analysis.
+
+<br>
+Here is a plot of fruit vs observations:
+
+<br>
+
+
+<br>
+It is really hard to tell if any trend exists, especially with all the
+zeros.
+
+<br>
+Here is a histogram of distances (2 above):
+
+<br>
+
+
+<br>
+As distance increase the amount of observations decreases. This
+relationship can be used to monitor detection probability.</div>
+</blockquote>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">Explain the frequentist models that can be used to analyze the data.
+Cite the literature explaining the methodology or at least one
+application paper that described the model/statistical methods (20
+points). DON’T SHOW CODE. Write the statistical model as you would in
+a scientific paper.</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">I would use a generic distance sampling model as proposed in Buckland
+(2001), Introduction to Distance Sampling: Estimating Abundance of
+Biological Populations. The basic model is described as below.
+
+<br>
+Distance sampling provides estimates of \(N\) from a sample of size
+\(n\)</div>
+</blockquote>
+
+
+<span class="ltx_Math">\begin{equation}
+E\left(n\right)=\ \overset{\overline{}}{p}N\nonumber \\
+ \end{equation}</span>
+
+
+<blockquote>
+<div class="ltx_p">Model \(\overset{\overline{}}{p}\) as a function of distance \(x\),
+which is related to the detection function \(g\left(x;\theta\right)\).
+\(\overset{\overline{}}{p}\) is related to detection function by
+calculating the average value of \(g\left(x;\theta\right)\) over all
+possible values of \(x\) .</div>
+</blockquote>
+
+
+<span class="ltx_Math">\begin{equation}
+\overset{\overline{}}{\text{p~{}}}\equiv\ \int_{x}{g\left(x;\theta\right)\left[x\right]\text{dx}}\nonumber \\
+ \end{equation}</span>
+
+
+<span class="ltx_Math">\begin{equation}
+\left[x\right]=1/B\nonumber \\
+ \end{equation}</span>
+
+
+<div class="ltx_p">The detection probability is equal to the area under the detection curve
+divided by the interval 0 to B where B is the maximum distance recorded.
+Variety of detection probability models exist. Models are some
+decreasing functions of distance. I will be using the half-normal
+function:</div>
+
+
+<div class="ltx_p">The likelihood of \(x\) distances is as follows:</div>
+
+
+<span class="ltx_Math">\begin{equation}
+L\left(\mathbf{x};\ \sigma\right)=\prod_{i=1}^{n}\frac{g\left(x_{i};\sigma\right)}{\int_{x}{g\left(x;\sigma\right)\text{dx}}}\nonumber \\
+ \end{equation}</span>
+
+
+<div class="ltx_p">This is calculated using conditional probabilities (Baye’s rule). Thus
+we can calculate p bar by finding the MLE of sigma. Then from above we
+know that the latent population is the observations divided by the
+detection probability. We would then model N with covariates to look at
+the parameters of interest using a log link function and a zero inflated
+Poisson distribution.</div>
+
+
+<ol>
+<li> 
+
+<div class="ltx_p">Propose a Bayesian Model to analyze the data. This could be a Bayesian
+variant of the model described in 5 (which will require to specify the
+priors) or a more complex model, which will require a different
+likelihood and priors. DON’T SHOW BUGS CODE HERE. Just write the model
+(including priors) using statistical notation. (20 points</div>
+</li>
+</ol>
+
+
+<blockquote>
+<div class="ltx_p">The model I propose is a hierarchical distance sampling model with a
+zero inflated overdispersed component to model abundance and another
+component to model detection as a function of distance.
+
+<br>
+Level 3 (Detection)</div>
+</blockquote>
+
+
+<span class="ltx_Math">\begin{equation}
+y_{\text{ktj}}\ \sim\ Multinomial\left(n_{\text{tj}},\ \mathbf{\pi}_{\text{tj}}^{c}\right)\nonumber \\
+ \end{equation}</span>
+
+
+<blockquote>
+<div class="ltx_p">This component of the model is used to calculate the detection at each
+replicate t and each site j via numerical integration over distance bins
+k. \(y_{\text{ktj}}\) is the observation at each site, replicate, and
+distance bin. \(n_{\text{tj}}\) is the observation at each site and
+replicate, and \(\mathbf{\pi}_{\text{tj}}^{c}\) is the vector of
+conditional cell probabilities at each rep and site.
+
+<br>
+Level 2 (Detection)</div>
+</blockquote>
+
+
+<span class="ltx_Math">\begin{equation}
+n_{\text{tj}}\ \sim\ Binomial\left(N_{\text{tj}},\ 1-\pi_{0}\ \right)\nonumber \\
+ \end{equation}</span>
+
+
+<blockquote>
+<div class="ltx_p">This step is used to calculate the latent population \(N_{\text{tj}}\)
+with \(1-\pi_{0}\) being the total detection probability at each site
+and rep (summed across the distance bins, k, via numerical integration).
+
+<br>
+Level 1 (Abundance)</div>
+</blockquote>
+
+
+<span class="ltx_Math">\begin{equation}
+N_{\text{tjs}}\ \sim\ ZIP\left(\lambda_{\text{tj}}\right)\nonumber \\
+ \end{equation}</span>
+
+
+<blockquote>
+<div class="ltx_p">This component describes the mean abundance \(\lambda_{\text{tj}}\) at
+each rep and site. The mean abundance will be modeled with a log link
+function and a linear predictor that contains the habitat covariates and
+fruit covariate. This part will also include a zero inflation term and
+an overdispersed term to account for the excess zeros and large variance
+compared to the mean.</div>
+</blockquote>
+
+
